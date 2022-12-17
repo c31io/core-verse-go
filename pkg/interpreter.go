@@ -12,11 +12,24 @@ type Interpreter struct {
 	prompt      *string
 	cmdChan     chan string
 	tokenChan   chan Token
+	integers    map[string]int
+	tuples      map[string][]int
+	choices     map[string][]int
+	astRoot     *AstNode
 }
 
 func (inter *Interpreter) Init() {
 	inter.cmdChan = make(chan string)
 	inter.tokenChan = make(chan Token)
+	inter.integers = make(map[string]int)
+	inter.tuples = make(map[string][]int)
+	inter.choices = make(map[string][]int)
+	inter.astRoot = new(AstNode)
+	////////////// From the slides of Haskell Exchange 2022 talk //////////////
+	// Verse is lenient but not strict:                                      //
+	// - Like strict: everything gets evaluated in the end                   //
+	// - Like lazy: functions can be called before the argument has a value  //
+	///////////////// This is the reason why I have to go now /////////////////
 	go inter.Lexer()
 	go inter.Parser()
 	inter.initialized = true
@@ -45,6 +58,10 @@ func (inter *Interpreter) showPrompt() {
 }
 
 func (inter *Interpreter) print(a ...any) {
+	fmt.Print(inter.Sprint(a...))
+}
+
+func (inter *Interpreter) Sprint(a ...any) string {
 	newLine := func() string {
 		if *inter.prompt == "" {
 			return ""
@@ -52,7 +69,7 @@ func (inter *Interpreter) print(a ...any) {
 			return "\n"
 		}
 	}()
-	fmt.Print(newLine, fmt.Sprint(a...), newLine, *inter.prompt)
+	return fmt.Sprint(newLine, fmt.Sprint(a...), newLine, *inter.prompt)
 }
 
 func (inter *Interpreter) sendCmd(cmd string) {
