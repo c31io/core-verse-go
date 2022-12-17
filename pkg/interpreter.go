@@ -11,20 +11,15 @@ type Interpreter struct {
 	initialized bool
 	prompt      *string
 	cmdChan     chan string
+	tokenChan   chan Token
 }
 
 func (inter *Interpreter) Init() {
 	inter.cmdChan = make(chan string)
+	inter.tokenChan = make(chan Token)
 	go inter.Lexer()
+	go inter.Parser()
 	inter.initialized = true
-}
-
-func (inter *Interpreter) showPrompt() {
-	fmt.Print(*inter.prompt)
-}
-
-func (inter *Interpreter) println(a ...any) {
-	fmt.Print("\n", fmt.Sprint(a...), "\n", *inter.prompt)
 }
 
 func (inter *Interpreter) Run(prompt *string, input *os.File) error {
@@ -45,13 +40,21 @@ func (inter *Interpreter) Run(prompt *string, input *os.File) error {
 	return nil
 }
 
-func (inter *Interpreter) sendCmd(cmd string) {
-	inter.cmdChan <- cmd
+func (inter *Interpreter) showPrompt() {
+	fmt.Print(*inter.prompt)
 }
 
-func (inter *Interpreter) Lexer() {
-	for {
-		cmd := <-inter.cmdChan
-		inter.println(cmd)
-	}
+func (inter *Interpreter) print(a ...any) {
+	newLine := func() string {
+		if *inter.prompt == "" {
+			return ""
+		} else {
+			return "\n"
+		}
+	}()
+	fmt.Print(newLine, fmt.Sprint(a...), newLine, *inter.prompt)
+}
+
+func (inter *Interpreter) sendCmd(cmd string) {
+	inter.cmdChan <- cmd
 }
