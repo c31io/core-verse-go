@@ -6,150 +6,56 @@ import (
 	"unicode"
 )
 
-type TokenName int
-
-const (
-	Identifier TokenName = iota
-	Keyword
-	Separator
-	Operator
-	Literal
-	Comment
-)
-
-var (
-	Keywords = []string{
-		// conditions
-		"if", "then", "else",
-		// loops
-		"for", "do",
-		// types
-		"int",
-		// tuples
-		"tuple", "array", "Length",
-	}
-	Separators = []string{
-		// brackets
-		"(", ")", "{", "}", "[", "]",
-		// EOL, time to execute?
-		"EOL",
-	}
-	Operators = []string{
-		// arithmetics
-		"+", "-", "*", "/",
-		// comparisons
-		"<", ">", "<=", ">=",
-		// lambdas, binds and unifications
-		"=>", ":", "=",
-		// choices, sequences and tuples
-		"..", "|", ";", ",",
-	}
-	Literals = []string{
-		// zero values
-		"false?",
-	}
-)
-
-type Token struct {
-	name   TokenName
-	lexeme []rune
-}
-
 type LexerState int
 
 const (
 	WhiteSpace LexerState = iota
 	Word
 	Symbol
-	Value
 )
-
-func getTokenName(token []rune) TokenName {
-	return Identifier
-}
 
 func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 	s := []rune(*line)
 	start, end := 0, 0
 	state := WhiteSpace
-	sendToken := func() {
-		lexeme := string(s[start:end])
-		token := Token{getTokenName([]rune(lexeme)), []rune(lexeme)}
-		ch <- token
-		start = end
+	sendToken := func(nextState LexerState) {
+		if state != nextState {
+			if state != WhiteSpace {
+				lexeme := string(s[start:end])
+				token := Token{getTokenName([]rune(lexeme)), []rune(lexeme)}
+				ch <- token
+			}
+			start = end
+			state = nextState
+		}
 	}
 	unknowSymbol := func() {
-		inter.print("Lexer: Unknown Symbol in string:\n" + *line + "\n" + strings.Repeat(" ", start) + "^")
-		// TODO clear parser
+		inter.print("Lexer: Unknown character in string:\n" + *line + "\n" + strings.Repeat(" ", end) + "^")
+		inter.clearParser <- struct{}{}
 	}
-loop:
-	for start != len(s) {
-		switch state {
-		case WhiteSpace:
-			if unicode.IsSpace(s[end]) {
-				start = end
-			} else if unicode.IsLetter(s[end]) || s[end] == '_' {
-				start = end
-				state = Word
-			} else if unicode.IsSymbol(s[end]) && s[end] != '_' {
-				start = end
-				state = Symbol
-			} else if unicode.IsDigit(s[end]) {
-				start = end
-				state = Value
-			} else {
-				unknowSymbol()
-				break loop
-			}
-		case Word:
-			if unicode.IsSpace(s[end]) {
-				sendToken()
-				state = WhiteSpace
-			} else if unicode.IsLetter(s[end]) || s[end] == '_' || unicode.IsDigit(s[end]) {
-			} else if unicode.IsSymbol(s[end]) && s[end] != '_' {
-				sendToken()
-				state = Symbol
-			} else if unicode.IsDigit(s[end]) {
-				sendToken()
-				state = Value
-			} else {
-				unknowSymbol()
-				break loop
-			}
-		case Symbol:
-			if unicode.IsSpace(s[end]) {
-				sendToken()
-				state = WhiteSpace
-			} else if unicode.IsLetter(s[end]) || s[end] == '_' {
-				sendToken()
-				state = Word
-			} else if unicode.IsSymbol(s[end]) && s[end] != '_' {
-			} else if unicode.IsDigit(s[end]) {
-				sendToken()
-				state = Value
-			} else {
-				unknowSymbol()
-				break loop
-			}
-		case Value:
-			if unicode.IsSpace(s[end]) {
-				sendToken()
-				state = WhiteSpace
-			} else if unicode.IsLetter(s[end]) || s[end] == '_' {
-				sendToken()
-				state = Word
-			} else if unicode.IsSymbol(s[end]) && s[end] != '_' {
-				sendToken()
-				state = Symbol
-			} else if unicode.IsDigit(s[end]) {
-			} else {
-				unknowSymbol()
-				break loop
-			}
+	breakLoop := false
+	handleLastRune := func() {
+		lastRune := s[end]
+		switch {
+		case isSpace(lastRune):
+			sendToken(WhiteSpace)
+		case isSymbol(lastRune):
+			sendToken(Symbol)
+		case isAlphaNumeric(lastRune):
+			sendToken(Word)
+		default:
+			unknowSymbol()
+			breakLoop = true
 		}
+	}
+	for start != len(s) {
+		handleLastRune()
 		end++
 		if end == len(s) {
-			sendToken()
+			sendToken(WhiteSpace)
+			break
+		}
+		if breakLoop {
 			break
 		}
 	}
@@ -185,4 +91,22 @@ func (inter *Interpreter) showState() {
 					fmt.Sprintf("%+v\n", inter)),
 				" ",
 				"\n")))
+}
+
+func isSpace(r rune) bool {
+	return r == ' ' || r == '\t' || r == '\r' || r == '\n'
+}
+
+func isSymbol(r rune) bool {
+	symbols := "(){}[]+-*/<>=:.|;,"
+	for _, s := range symbols {
+		if s == r {
+			return true
+		}
+	}
+	return false
+}
+
+func isAlphaNumeric(r rune) bool {
+	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }

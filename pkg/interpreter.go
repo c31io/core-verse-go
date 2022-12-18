@@ -7,11 +7,14 @@ import (
 	"os"
 )
 
+const chanBufSize = 64
+
 type Interpreter struct {
 	initialized bool
 	prompt      *string
 	cmdChan     chan string
 	tokenChan   chan Token
+	clearParser chan struct{}
 	integers    map[string]int
 	tuples      map[string][]int
 	choices     map[string][]int
@@ -19,8 +22,9 @@ type Interpreter struct {
 }
 
 func (inter *Interpreter) Init() {
-	inter.cmdChan = make(chan string)
-	inter.tokenChan = make(chan Token)
+	inter.cmdChan = make(chan string, chanBufSize)
+	inter.tokenChan = make(chan Token, chanBufSize)
+	inter.clearParser = make(chan struct{}, chanBufSize)
 	inter.integers = make(map[string]int)
 	inter.tuples = make(map[string][]int)
 	inter.choices = make(map[string][]int)
