@@ -29,9 +29,9 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 	sendToken := func() {
 		if state != whiteSpace {
 			lexeme := string(s[start:end])
-			name := getTokenName([]rune(lexeme))
+			name := getTokenName(lexeme)
 			if name != -1 {
-				token := Token{name, []rune(lexeme)}
+				token := Token{name, lexeme}
 				ch <- token
 			} else {
 				unknowToken(&lexeme)
@@ -81,7 +81,7 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 	if !breakLoop {
 		// EOL was removed by line scanning.
 		// Put it back as a visible lexeme.
-		inter.sendToken(Token{tokenEOL, nil})
+		ch <- Token{tokenEOL, "EOL"}
 	}
 	close(ch)
 }

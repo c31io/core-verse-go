@@ -7,7 +7,7 @@ import (
 
 type Token struct {
 	name   tokenName
-	lexeme []rune
+	lexeme string
 }
 
 type tokenName int
@@ -64,8 +64,7 @@ const (
 	tokenVar
 )
 
-func getTokenName(token []rune) tokenName {
-	s := string(token)
+func getTokenName(s string) tokenName {
 	switch s {
 	case "if":
 		return tokenIf
@@ -132,13 +131,14 @@ func getTokenName(token []rune) tokenName {
 	case "false?":
 		return tokenFail
 	default:
-		if unicode.IsDigit(token[0]) {
-			_, err := strconv.Atoi(string(token))
+		r := []rune(s)[0]
+		if unicode.IsDigit(r) {
+			_, err := strconv.Atoi(s)
 			if err != nil {
 				return -1
 			}
 			return tokenLitInt
-		} else if isAlpha(token[0]) {
+		} else if isAlpha(r) {
 			return tokenVar
 		} else {
 			return -1
