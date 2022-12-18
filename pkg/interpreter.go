@@ -7,10 +7,9 @@ import (
 	"os"
 )
 
-const chanBufSize = 64
-
 type Interpreter struct {
 	initialized bool
+	chanBufSize int
 	prompt      *string
 	cmdChan     chan string
 	tokenChan   chan Token
@@ -21,7 +20,8 @@ type Interpreter struct {
 	astRoot     *AstNode
 }
 
-func (inter *Interpreter) Init() {
+func (inter *Interpreter) Init(chanBufSize int) {
+	inter.chanBufSize = chanBufSize
 	inter.cmdChan = make(chan string, chanBufSize)
 	inter.tokenChan = make(chan Token, chanBufSize)
 	inter.clearParser = make(chan struct{}, chanBufSize)
@@ -34,7 +34,7 @@ func (inter *Interpreter) Init() {
 	// - Like strict: everything gets evaluated in the end                   //
 	// - Like lazy: functions can be called before the argument has a value  //
 	///////////////// This is the reason why I have to go now /////////////////
-	go inter.Lexer()
+	go inter.lexer()
 	go inter.Parser()
 	inter.initialized = true
 }
@@ -53,6 +53,7 @@ func (inter *Interpreter) Run(prompt *string, input *os.File) error {
 	if scanner.Err() != nil {
 		return scanner.Err()
 	}
+	// TODO wait for active rewrites
 	fmt.Println()
 	return nil
 }

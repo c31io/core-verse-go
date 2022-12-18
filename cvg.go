@@ -19,7 +19,7 @@ func main() {
 		println("Core Verse interpreter in Go")
 	}
 	inter := new(cvg.Interpreter)
-	inter.Init()
+	inter.Init(64)
 	err := inter.Run(&prompt, os.Stdin)
 	if err != nil {
 		fmt.Println(err.Error())
