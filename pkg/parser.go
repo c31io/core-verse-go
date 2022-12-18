@@ -12,6 +12,6 @@ type AstNode struct {
 func (inter *Interpreter) Parser() {
 	for {
 		token := <-inter.tokenChan
-		inter.print(string(token.lexeme))
+		inter.print(token.name, "\t", string(token.lexeme))
 	}
 }

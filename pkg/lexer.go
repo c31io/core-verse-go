@@ -18,46 +18,70 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 	s := []rune(*line)
 	start, end := 0, 0
 	state := whiteSpace
-	sendToken := func(nextState lexerState) {
-		if state != nextState {
-			if state != whiteSpace {
-				lexeme := string(s[start:end])
-				token := Token{getTokenName([]rune(lexeme)), []rune(lexeme)}
-				ch <- token
-			}
-			start = end
-			state = nextState
-		}
-	}
-	unknowSymbol := func() {
-		inter.print("Lexer: Unknown character in string:\n" + *line + "\n" + strings.Repeat(" ", end) + "^")
+	unknowChar := func() {
+		inter.print("Unknown character:\n" + *line + "\n" + strings.Repeat(" ", end) + "^")
 		inter.clearParser <- struct{}{}
+	}
+	unknowToken := func(name *string) {
+		inter.print("Unknown token: " + *name)
+		inter.clearParser <- struct{}{}
+	}
+	sendToken := func() {
+		if state != whiteSpace {
+			lexeme := string(s[start:end])
+			name := getTokenName([]rune(lexeme))
+			if name != -1 {
+				token := Token{name, []rune(lexeme)}
+				ch <- token
+			} else {
+				unknowToken(&lexeme)
+			}
+		}
+		start = end
+	}
+	sendTokenMaybe := func(nextState lexerState) {
+		if state != nextState {
+			sendToken()
+			state = nextState
+		} else if nextState == symbol {
+			if ss := string(s[start : end+1]); !(ss == "<=" ||
+				ss == ">=" ||
+				ss == "=>" ||
+				ss == "..") {
+				sendToken()
+			}
+		}
 	}
 	breakLoop := false
 	handleLastRune := func() {
 		lastRune := s[end]
 		switch {
 		case isSpace(lastRune):
-			sendToken(whiteSpace)
+			sendTokenMaybe(whiteSpace)
 		case isSymbol(lastRune):
-			sendToken(symbol)
+			sendTokenMaybe(symbol)
 		case isAlphaNumeric(lastRune):
-			sendToken(word)
+			sendTokenMaybe(word)
 		default:
-			unknowSymbol()
+			unknowChar()
 			breakLoop = true
 		}
 	}
 	for start != len(s) {
 		handleLastRune()
 		end++
-		if end == len(s) {
-			sendToken(whiteSpace)
-			break
-		}
 		if breakLoop {
 			break
 		}
+		if end == len(s) {
+			sendTokenMaybe(whiteSpace)
+			break
+		}
+	}
+	if !breakLoop {
+		// EOL was removed by line scanning.
+		// Put it back as a visible lexeme.
+		inter.sendToken(Token{tokenEOL, nil})
 	}
 	close(ch)
 }
@@ -65,7 +89,7 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 func (inter *Interpreter) lexer() {
 	for {
 		cmd := <-inter.cmdChan
-		if strings.ToLower(strings.TrimSpace(cmd)) == "?" {
+		if strings.ToLower(strings.TrimSpace(cmd)) == "??" {
 			inter.showState()
 		}
 		tokens := make(chan Token, inter.chanBufSize)
@@ -73,9 +97,6 @@ func (inter *Interpreter) lexer() {
 		for token := range tokens {
 			inter.sendToken(token)
 		}
-		// EOL was removed by line scanning.
-		// Put it back as a visible lexeme.
-		inter.sendToken(Token{0, []rune("EOL")})
 	}
 }
 
@@ -108,5 +129,9 @@ func isSymbol(r rune) bool {
 }
 
 func isAlphaNumeric(r rune) bool {
-	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
+	return isAlpha(r) || unicode.IsDigit(r)
+}
+
+func isAlpha(r rune) bool {
+	return r == '_' || r == '?' || unicode.IsLetter(r)
 }
