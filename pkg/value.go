@@ -8,14 +8,14 @@ const (
 	ValueChoices
 )
 
-type Value[T int | float64] struct {
-	value     []T
+type Value[N int | float64] struct {
+	value     []N
 	valueType ValueType
 	evaluated chan struct{}
 }
 
-func (iv *Value[T]) NewValue(v []T, vt ValueType) *Value[T] {
-	intVal := &Value[T]{
+func (iv *Value[N]) NewValue(v []N, vt ValueType) *Value[N] {
+	intVal := &Value[N]{
 		value:     v,
 		valueType: vt,
 		evaluated: make(chan struct{}),
@@ -26,16 +26,16 @@ func (iv *Value[T]) NewValue(v []T, vt ValueType) *Value[T] {
 	return intVal
 }
 
-func (iv *Value[T]) getValue() []T {
+func (iv *Value[N]) getValue() []N {
 	<-iv.evaluated
 	return iv.value
 }
 
-func (iv *Value[T]) getType() ValueType {
+func (iv *Value[N]) getType() ValueType {
 	return iv.valueType
 }
 
-func (iv *Value[T]) Is(value []T) {
+func (iv *Value[N]) Is(value []N) {
 	iv.value = value
 	close(iv.evaluated)
 }
