@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 )
 
 type Interpreter struct {
@@ -14,9 +15,7 @@ type Interpreter struct {
 	cmdChan     chan string
 	tokenChan   chan Token
 	clearParser chan struct{}
-	integers    map[string]int
-	tuples      map[string][]int
-	choices     map[string][]int
+	variables   sync.Map
 	astRoot     *AstNode
 }
 
@@ -25,9 +24,6 @@ func (inter *Interpreter) Init(chanBufSize int) {
 	inter.cmdChan = make(chan string, chanBufSize)
 	inter.tokenChan = make(chan Token, chanBufSize)
 	inter.clearParser = make(chan struct{}, chanBufSize)
-	inter.integers = make(map[string]int)
-	inter.tuples = make(map[string][]int)
-	inter.choices = make(map[string][]int)
 	inter.astRoot = new(AstNode)
 	////////////// From the slides of Haskell Exchange 2022 talk //////////////
 	// Verse is lenient but not strict:                                      //

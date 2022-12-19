@@ -29,7 +29,7 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 	sendToken := func() {
 		if state != whiteSpace {
 			lexeme := string(s[start:end])
-			name := getTokenName(lexeme)
+			name := getTokenName(&lexeme)
 			if name != -1 {
 				token := Token{name, lexeme}
 				ch <- token

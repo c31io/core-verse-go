@@ -56,16 +56,16 @@ const (
 	tokenSequence // ;
 	tokenComma    // ,
 	//// literals
-	// integers
-	tokenLitInt // 42
+	// numbers
+	tokenLitNumber // 42
 	// zero values
 	tokenFail // false?
 	//// variables
 	tokenVar
 )
 
-func getTokenName(s string) tokenName {
-	switch s {
+func getTokenName(s *string) tokenName {
+	switch *s {
 	case "if":
 		return tokenIf
 	case "then":
@@ -131,13 +131,13 @@ func getTokenName(s string) tokenName {
 	case "false?":
 		return tokenFail
 	default:
-		r := []rune(s)[0]
+		r := []rune(*s)[0]
 		if unicode.IsDigit(r) {
-			_, err := strconv.Atoi(s)
+			_, err := strconv.ParseFloat(*s, 64)
 			if err != nil {
 				return -1
 			}
-			return tokenLitInt
+			return tokenLitNumber
 		} else if isAlpha(r) {
 			return tokenVar
 		} else {

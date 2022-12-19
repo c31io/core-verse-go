@@ -7,6 +7,7 @@ var AstMutex sync.Mutex
 type AstNode struct {
 	token    *Token
 	children []Token
+	rewriter *Rewriter
 }
 
 func (inter *Interpreter) Parser() {

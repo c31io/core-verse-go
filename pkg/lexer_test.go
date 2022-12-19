@@ -8,8 +8,8 @@ type lex struct {
 }
 
 var lexList []lex = []lex{
-	{"3", []Token{{tokenLitInt, "3"}, {tokenEOL, "EOL"}}},
-	{"3+7", []Token{{tokenLitInt, "3"}, {tokenPlus, "+"}, {tokenLitInt, "7"}, {tokenEOL, "EOL"}}},
+	{"3", []Token{{tokenLitNumber, "3"}, {tokenEOL, "EOL"}}},
+	{"3+7", []Token{{tokenLitNumber, "3"}, {tokenPlus, "+"}, {tokenLitNumber, "7"}, {tokenEOL, "EOL"}}},
 }
 
 func TestLineLexer(t *testing.T) {
