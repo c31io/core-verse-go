@@ -8,6 +8,7 @@ const (
 	ValueChoices
 )
 
+// Empty list is zero value.
 type Value[N int | float64] struct {
 	value     []N
 	valueType ValueType
@@ -15,15 +16,15 @@ type Value[N int | float64] struct {
 }
 
 func (iv *Value[N]) NewValue(v []N, vt ValueType) *Value[N] {
-	intVal := &Value[N]{
+	value := &Value[N]{
 		value:     v,
 		valueType: vt,
 		evaluated: make(chan struct{}),
 	}
 	if v != nil {
-		close(intVal.evaluated)
+		close(value.evaluated)
 	}
-	return intVal
+	return value
 }
 
 func (iv *Value[N]) getValue() []N {

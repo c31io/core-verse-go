@@ -10,7 +10,7 @@ type AstNode struct {
 	rewriter *Rewriter
 }
 
-func (inter *Interpreter) Parser() {
+func (inter *Interpreter) parser() {
 	for {
 		token := <-inter.tokenChan
 		inter.print(token.name, "\t", string(token.lexeme))

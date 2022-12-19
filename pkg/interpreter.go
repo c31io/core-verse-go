@@ -31,7 +31,7 @@ func (inter *Interpreter) Init(chanBufSize int) {
 	// - Like lazy: functions can be called before the argument has a value  //
 	///////////////// This is the reason why I have to go now /////////////////
 	go inter.lexer()
-	go inter.Parser()
+	go inter.parser()
 	inter.initialized = true
 }
 
