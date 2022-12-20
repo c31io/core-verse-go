@@ -8,6 +8,7 @@ import (
 	"sync"
 )
 
+// Interpreter{} holds states and communicating channels.
 type Interpreter struct {
 	initialized bool
 	chanBufSize int
@@ -19,6 +20,8 @@ type Interpreter struct {
 	astRoot     *AstNode
 }
 
+// Late initialization. Some functions do not require an initialized
+// interpreter, e.g. LineLexer(). chanBufSize should always be positive.
 func (inter *Interpreter) Init(chanBufSize int) {
 	inter.chanBufSize = chanBufSize
 	inter.cmdChan = make(chan string, chanBufSize)
@@ -35,6 +38,8 @@ func (inter *Interpreter) Init(chanBufSize int) {
 	inter.initialized = true
 }
 
+// Run interpreter with nonempty prompt and os.Stdin for interactive mode, or run with an
+// empty string "" as prompt to handle file input for batch mode.
 func (inter *Interpreter) Run(prompt *string, input *os.File) error {
 	if !inter.initialized {
 		return errors.New("Interpreter uninitialized")
@@ -54,14 +59,17 @@ func (inter *Interpreter) Run(prompt *string, input *os.File) error {
 	return nil
 }
 
+// Send prompt to stdout.
 func (inter *Interpreter) showPrompt() {
 	fmt.Print(*inter.prompt)
 }
 
+// Print to stdout without messing user input.
 func (inter *Interpreter) print(a ...any) {
 	fmt.Print(inter.Sprint(a...))
 }
 
+// Prepare message to stdout without messing user input.
 func (inter *Interpreter) Sprint(a ...any) string {
 	newLine := func() string {
 		if *inter.prompt == "" {
@@ -73,6 +81,7 @@ func (inter *Interpreter) Sprint(a ...any) string {
 	return fmt.Sprint(newLine, fmt.Sprint(a...), newLine, *inter.prompt)
 }
 
+// Send command to lexer().
 func (inter *Interpreter) sendCmd(cmd string) {
 	inter.cmdChan <- cmd
 }

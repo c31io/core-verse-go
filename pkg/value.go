@@ -1,5 +1,7 @@
 package cvg
 
+// Internally, values are all number slices.
+// Their type will influence the behavior of operators.
 type ValueType int
 
 const (
@@ -8,35 +10,50 @@ const (
 	ValueChoices
 )
 
-// Empty list is zero value.
+// Value[int | float64]{} blocks the getValue() until evaluated.
 type Value[N int | float64] struct {
-	value     []N
+	fields    []N
 	valueType ValueType
 	evaluated chan struct{}
 }
 
-func (iv *Value[N]) NewValue(v []N, vt ValueType) *Value[N] {
+// Create a Value object with fields and type.
+// If the fields slice is not nil, unblock the getValue() right away.
+func (val *Value[N]) NewValue(fs []N, vt ValueType) *Value[N] {
 	value := &Value[N]{
-		value:     v,
+		fields:    fs,
 		valueType: vt,
 		evaluated: make(chan struct{}),
 	}
-	if v != nil {
+	if fs != nil {
 		close(value.evaluated)
 	}
 	return value
 }
 
-func (iv *Value[N]) getValue() []N {
-	<-iv.evaluated
-	return iv.value
+// Block until the value is evaluated.
+func (val *Value[N]) getValue() []N {
+	<-val.evaluated
+	return val.fields
 }
 
-func (iv *Value[N]) getType() ValueType {
-	return iv.valueType
+// Getter of the valueType.
+func (val *Value[N]) getType() ValueType {
+	return val.valueType
 }
 
-func (iv *Value[N]) Is(value []N) {
-	iv.value = value
-	close(iv.evaluated)
+// Value is evalueated as fs with type vt.
+func (val *Value[N]) is(fs []N, vt ValueType) {
+	val.fields = fs
+	val.valueType = vt
+	close(val.evaluated)
+}
+
+// Zero value or an empty slice is the False of Verse.
+func (val *Value[N]) isZero() bool {
+	if len(val.fields) == 0 {
+		return true
+	} else {
+		return false
+	}
 }

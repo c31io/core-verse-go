@@ -7,6 +7,7 @@ import (
 	cvg "github.com/c31io/core-verse-go/pkg"
 )
 
+// If argument exists, run in interactive mode.
 func main() {
 	prompt := func() string {
 		if len(os.Args) > 1 {

@@ -5,29 +5,41 @@ import (
 	"unicode"
 )
 
+// Token{} holds a token's type and its piece of string.
 type Token struct {
 	name   tokenName
 	lexeme string
 }
 
+// Keywords, separators, operators, literals, and variables.
 type tokenName int
 
 const (
 	//// keywords
+
 	// conditions
+
 	tokenIf   tokenName = iota // if
 	tokenThen                  // then
 	tokenElse                  // else
+
 	// loops
+
 	tokenFor // for
 	tokenDo  // do
+
 	// types
+
 	tokenInt // int
+
 	// tuples
+
 	tokenTuple  // tuple
 	tokenArray  // array
 	tokenLength // Length
+
 	//// separators
+
 	tokenParenL // (
 	tokenParenR // )
 	tokenSqBraL // [
@@ -35,35 +47,52 @@ const (
 	tokenCurlyL // {
 	tokenCurlyR // }
 	tokenEOL    // \n
+
 	//// operators
+
 	// arithmetics
+
 	tokenPlus     // +
 	tokenMinus    // -
 	tokenMultiply // *
 	tokenDivide   // /
+
 	// comparisons
+
 	tokenLe  // <
 	tokenGr  // >
 	tokenLeq // <=
 	tokenGeq // >=
+
 	// lambdas, binds and unifications
+
 	tokenLambda // =>
 	tokenBind   // :
 	tokenUnify  // =
+
 	// choices, sequences and tuples
+
 	tokenRange    // ..
 	tokenChoise   // |
 	tokenSequence // ;
 	tokenComma    // ,
+
 	//// literals
+
 	// numbers
+
 	tokenLitNumber // 42
+
 	// zero values
+
 	tokenFail // false?
+
 	//// variables
+
 	tokenVar
 )
 
+// What kind of token is this string?
 func getTokenName(s *string) tokenName {
 	switch *s {
 	case "if":

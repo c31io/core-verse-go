@@ -6,18 +6,25 @@ import (
 	"unicode"
 )
 
+// Greedy states of the lexing loop in LineLexer().
 type lexerState int
 
 const (
+	// whitespaces are described by isSpace().
 	whiteSpace lexerState = iota
+	// Word is a string of unicode letters, '_', and '?'.
 	word
+	// Tokens that are made of symbols are listed in the file token.go.
 	symbol
 )
 
+// The LineLexer breaks the line into tokens.
 func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
+	// The states:
 	s := []rune(*line)
 	start, end := 0, 0
 	state := whiteSpace
+	// The closures:
 	unknowChar := func() {
 		inter.print("Unknown character:\n" + *line + "\n" + strings.Repeat(" ", end) + "^")
 		inter.clearParser <- struct{}{}
@@ -44,6 +51,7 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 			sendToken()
 			state = nextState
 		} else if nextState == symbol {
+			// Break the lexeme if
 			if ss := string(s[start : end+1]); !(ss == "<=" ||
 				ss == ">=" ||
 				ss == "=>" ||
@@ -52,6 +60,7 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 			}
 		}
 	}
+	// The state machine:
 	breakLoop := false
 	handleLastRune := func() {
 		lastRune := s[end]
@@ -67,6 +76,7 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 			breakLoop = true
 		}
 	}
+	// The main lexing loop:
 	for start != len(s) {
 		handleLastRune()
 		end++
@@ -78,6 +88,7 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 			break
 		}
 	}
+	// Check if the main loop stopped without errors.
 	if !breakLoop {
 		// EOL was removed by line scanning.
 		// Put it back as a visible lexeme.
@@ -86,6 +97,7 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 	close(ch)
 }
 
+// Wrapper function to make LineLexer() unit testable.
 func (inter *Interpreter) lexer() {
 	for {
 		cmd := <-inter.cmdChan
@@ -100,10 +112,12 @@ func (inter *Interpreter) lexer() {
 	}
 }
 
+// Send token to its channel.
 func (inter *Interpreter) sendToken(token Token) {
 	inter.tokenChan <- token
 }
 
+// Pretty print Interpreter{}.
 func (inter *Interpreter) showState() {
 	fmt.Print(
 		inter.Sprint(
@@ -114,10 +128,12 @@ func (inter *Interpreter) showState() {
 				"\n")))
 }
 
+// If a rune is one of the whitespaces (' ', '\t', '\t', '\n').
 func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n'
 }
 
+// If a rune is a symbol used by a separator or an operator.
 func isSymbol(r rune) bool {
 	symbols := "(){}[]+-*/<>=:.|;,"
 	for _, s := range symbols {
@@ -128,10 +144,13 @@ func isSymbol(r rune) bool {
 	return false
 }
 
+// If a rune is a letter, '_', '?', or a digit.
 func isAlphaNumeric(r rune) bool {
 	return isAlpha(r) || unicode.IsDigit(r)
 }
 
+// If a rune is a letter, '_', or '?'.
+// The '?' is preserved for zero-value literals.
 func isAlpha(r rune) bool {
 	return r == '_' || r == '?' || unicode.IsLetter(r)
 }

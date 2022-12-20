@@ -2,19 +2,21 @@ package cvg
 
 import "testing"
 
+// Holds testing pairs.
 type lex struct {
 	in  string
 	out []Token
 }
 
+// Examples from the slides. URL: https://simon.peytonjones.org/assets/pdfs/haskell-exchange-22.pdf
 var lexList []lex = []lex{
 	{"3", []Token{{tokenLitNumber, "3"}, {tokenEOL, "EOL"}}},
 	{"3+7", []Token{{tokenLitNumber, "3"}, {tokenPlus, "+"}, {tokenLitNumber, "7"}, {tokenEOL, "EOL"}}},
 }
 
+// Test code from the slides.
 func TestLineLexer(t *testing.T) {
 	inter := Interpreter{}
-	inter.Init(1)
 	for _, v := range lexList {
 		c := make(chan Token, 1)
 		go inter.LineLexer(&v.in, c)
