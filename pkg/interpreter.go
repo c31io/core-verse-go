@@ -38,8 +38,8 @@ func (inter *Interpreter) Init(chanBufSize int) {
 	inter.initialized = true
 }
 
-// Run interpreter with nonempty prompt and os.Stdin for interactive mode, or run with an
-// empty string "" as prompt to handle file input for batch mode.
+// Run interpreter with nonempty prompt and os.Stdin for interactive mode, or
+// run with an empty string "" as prompt to handle file input for batch mode.
 func (inter *Interpreter) Run(prompt *string, input *os.File) error {
 	if !inter.initialized {
 		return errors.New("Interpreter uninitialized")

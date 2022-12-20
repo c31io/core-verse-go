@@ -26,7 +26,9 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 	state := whiteSpace
 	// The closures:
 	unknowChar := func() {
-		inter.print("Unknown character:\n" + *line + "\n" + strings.Repeat(" ", end) + "^")
+		inter.print("Unknown character:\n" +
+			*line + "\n" +
+			strings.Repeat(" ", end) + "^")
 		inter.clearParser <- struct{}{}
 	}
 	unknowToken := func(name *string) {
