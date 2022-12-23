@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sync"
 )
 
 // Interpreter{} holds states and communicating channels.
@@ -16,8 +15,6 @@ type Interpreter struct {
 	cmdChan     chan string
 	tokenChan   chan Token
 	clearParser chan struct{}
-	variables   sync.Map
-	astRoot     *AstNode
 }
 
 // Late initialization. Some functions do not require an initialized
@@ -27,7 +24,6 @@ func (inter *Interpreter) Init(chanBufSize int) {
 	inter.cmdChan = make(chan string, chanBufSize)
 	inter.tokenChan = make(chan Token, chanBufSize)
 	inter.clearParser = make(chan struct{}, chanBufSize)
-	inter.astRoot = new(AstNode)
 	////////////// From the slides of Haskell Exchange 2022 talk //////////////
 	// Verse is lenient but not strict:                                      //
 	// - Like strict: everything gets evaluated in the end                   //

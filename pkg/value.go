@@ -50,7 +50,7 @@ func (val *Value[N]) is(fs []N, vt ValueType) {
 }
 
 // Zero value or an empty slice is the False of Verse.
-func (val *Value[N]) isZero() bool {
+func (val *Value[N]) isFail() bool {
 	if len(val.fields) == 0 {
 		return true
 	} else {

@@ -66,9 +66,10 @@ const (
 
 	// lambdas, binds and unifications
 
-	tokenLambda // =>
-	tokenBind   // :
-	tokenUnify  // =
+	tokenLambda     // =>
+	tokenScope      // :
+	tokenUnify      // =
+	tokenScopeUnify // :=
 
 	// choices, sequences and tuples
 
@@ -146,9 +147,11 @@ func getTokenName(s *string) tokenName {
 	case "=>":
 		return tokenLambda
 	case ":":
-		return tokenBind
+		return tokenScope
 	case "=":
 		return tokenUnify
+	case ":=":
+		return tokenScopeUnify
 	case "..":
 		return tokenRange
 	case "|":

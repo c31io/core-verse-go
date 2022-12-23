@@ -57,7 +57,8 @@ func (inter *Interpreter) LineLexer(line *string, ch chan Token) {
 			if ss := string(s[start : end+1]); !(ss == "<=" ||
 				ss == ">=" ||
 				ss == "=>" ||
-				ss == "..") {
+				ss == ".." ||
+				ss == ":=") {
 				sendToken()
 			}
 		}
