@@ -1,13 +1,24 @@
 package cvg
 
+import "fmt"
+
 // Internally, values are all number slices.
 // Their type will influence the behavior of operators.
 type ValueType int
 
 const (
-	ValueScalar ValueType = iota
-	ValueTuple
-	ValueChoices
+
+	// Scalar Values
+
+	valueInteger  ValueType = iota // 42
+	valueFloat                     // 3.14
+	valueVariable                  // x
+	valuePrimop                    // + - * / < <= > >=
+
+	// Heap Values
+
+	valueTuple
+	valueLambda
 )
 
 // Value[int | float64]{} blocks the getValue() until evaluated.
@@ -56,4 +67,13 @@ func (val *Value[N]) isFail() bool {
 	} else {
 		return false
 	}
+}
+
+// String presentation of the value
+func (val *Value[N]) Sprint() string {
+	if val.valueType == valueInteger ||
+		val.valueType == valueFloat {
+		return fmt.Sprintf("%v", val.fields[0])
+	}
+	return "Unknown"
 }
