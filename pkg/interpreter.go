@@ -2,7 +2,6 @@ package cvg
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 )
@@ -38,7 +37,7 @@ func (inter *Interpreter) Init(chanBufSize int) {
 // run with an empty string "" as prompt to handle file input for batch mode.
 func (inter *Interpreter) Run(prompt *string, input *os.File) error {
 	if !inter.initialized {
-		return errors.New("Interpreter uninitialized")
+		return ErrorInterUninitialized{}
 	}
 	inter.prompt = prompt
 	scanner := bufio.NewScanner(os.Stdin)

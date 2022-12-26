@@ -12,12 +12,12 @@ type lex struct {
 // URL: https://simon.peytonjones.org/assets/pdfs/haskell-exchange-22.pdf
 var lexList []lex = []lex{
 	{"3", []Token{
-		{tokenLitNumber, "3"},
+		{tokenDecimal, "3"},
 		{tokenEOL, "EOL"}}},
 	{"3+7", []Token{
-		{tokenLitNumber, "3"},
+		{tokenDecimal, "3"},
 		{tokenPlus, "+"},
-		{tokenLitNumber, "7"},
+		{tokenDecimal, "7"},
 		{tokenEOL, "EOL"}}},
 }
 

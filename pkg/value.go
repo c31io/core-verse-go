@@ -30,16 +30,13 @@ type Value[N int | float64] struct {
 
 // Create a Value object with fields and type.
 // If the fields slice is not nil, unblock the getValue() right away.
-func (val *Value[N]) NewValue(fs []N, vt ValueType) *Value[N] {
-	value := &Value[N]{
-		fields:    fs,
-		valueType: vt,
-		evaluated: make(chan struct{}),
-	}
+func (val *Value[N]) NewValue(fs []N, vt ValueType) {
+	val.fields = fs
+	val.valueType = vt
+	val.evaluated = make(chan struct{})
 	if fs != nil {
-		close(value.evaluated)
+		close(val.evaluated)
 	}
-	return value
 }
 
 // Block until the value is evaluated.
@@ -75,5 +72,5 @@ func (val *Value[N]) Sprint() string {
 		val.valueType == valueFloat {
 		return fmt.Sprintf("%v", val.fields[0])
 	}
-	return "Unknown"
+	return "Unknown Value"
 }

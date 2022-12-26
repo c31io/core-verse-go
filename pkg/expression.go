@@ -3,7 +3,8 @@ package cvg
 type ExprType int
 
 const (
-	exprValueInt ExprType = iota
+	exprUnknown ExprType = iota
+	exprValueInt
 	exprValueFloat
 	exprSequence
 	exprScope

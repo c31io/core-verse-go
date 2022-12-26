@@ -82,7 +82,8 @@ const (
 
 	// numbers
 
-	tokenLitNumber // 42
+	tokenDecimal // 42
+	tokenPoint   // .
 
 	// zero values
 
@@ -160,6 +161,8 @@ func getTokenName(s *string) tokenName {
 		return tokenSequence
 	case ",":
 		return tokenComma
+	case ".":
+		return tokenPoint
 	case "false?":
 		return tokenFail
 	default:
@@ -169,7 +172,7 @@ func getTokenName(s *string) tokenName {
 			if err != nil {
 				return -1
 			}
-			return tokenLitNumber
+			return tokenDecimal
 		} else if isAlpha(r) {
 			return tokenVar
 		} else {
