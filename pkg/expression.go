@@ -22,7 +22,7 @@ type Expression struct {
 	scope      Scope
 	exprType   ExprType
 	outerExpr  *Expression
-	innerExprs *Expression
+	innerExprs []Expression
 
 	// context
 
@@ -32,13 +32,36 @@ type Expression struct {
 	inChoices     bool
 }
 
+// Float the binding points of variables.
+func (expr *Expression) Floater() {}
+
+// Evaluate by rewriting.
 func (expr *Expression) Rewriter() {
 	// brute force different paths
 	switch expr.exprType {
+
 	case exprValueInt:
 		expr.inter.print(expr.valueInt.Sprint())
+
 	case exprValueFloat:
 		expr.inter.print(expr.valueFloat.Sprint())
+
+	case exprSequence:
+
+	case exprScope:
+
+	case exprFail:
+
+	case exprAll:
+
+	case exprOne:
+
+	case exprChoices:
+
+	case exprApplication:
+
+	case exprUnify:
+
 	default:
 		expr.inter.print("Unknow Value")
 	}
