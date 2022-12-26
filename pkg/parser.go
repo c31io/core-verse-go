@@ -1,7 +1,6 @@
 package cvg
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -16,7 +15,7 @@ func (inter *Interpreter) parser() {
 		}
 		newToken := <-inter.tokenChan
 		if newToken.name == tokenEOL {
-			if tokens[len(tokens)-1].name != tokenSequence {
+			if len(tokens) > 0 && tokens[len(tokens)-1].name != tokenSequence {
 				err := root.buildExpression(inter, tokens)
 				if err != nil {
 					inter.print(err.Error())
@@ -33,8 +32,8 @@ func (inter *Interpreter) parser() {
 }
 
 // Parse tokens into an expression.
-func (expr *Expression) buildExpression(inter *Interpreter, tokens []Token) error {
-	fmt.Printf("%v\n", tokens)
+func (expr *Expression) buildExpression(
+	inter *Interpreter, tokens []Token) error {
 	if !goodBrackets(tokens) {
 		return ErrorBracketsNotMatch{}
 	}
@@ -61,13 +60,39 @@ func (expr *Expression) buildExpression(inter *Interpreter, tokens []Token) erro
 		expr.valueFloat = &Value[float64]{}
 		expr.valueFloat.NewValue([]float64{vf}, valueFloat)
 	case isSequence(tokens):
-		// Is it a scope?
-		// Is it a fail?
-		// Is it a for-do?
-		// Is it a if-else?
-		// Is it choices?
-		// Is it an application?
-		// Is it a unify?
+		expr.exprType = exprSequence
+		expr.innerExprs = []Expression{}
+		bracketCount := 0
+		head := 0
+		for index, token := range tokens {
+			switch token.name {
+			case tokenParenL, tokenSqBraL, tokenCurlyL:
+				bracketCount++
+			case tokenParenR, tokenSqBraR, tokenCurlyR:
+				bracketCount--
+			case tokenSequence:
+				if bracketCount == 0 {
+					innerExpr := Expression{outerExpr: expr}
+					expr.innerExprs = append(expr.innerExprs, innerExpr)
+					expr.innerExprs[len(expr.innerExprs)-1].buildExpression(inter, tokens[head:index])
+					head = index + 1
+				}
+			default:
+				if index == len(tokens)-1 {
+					index += 1
+					innerExpr := Expression{outerExpr: expr}
+					expr.innerExprs = append(expr.innerExprs, innerExpr)
+					expr.innerExprs[len(expr.innerExprs)-1].buildExpression(inter, tokens[head:index])
+				}
+			}
+		}
+		// scope?
+		// fail?
+		// for-do?
+		// if-else?
+		// choices?
+		// application?
+		// unify?
 	default:
 		return ErrorUnknownExpression{}
 	}
@@ -118,5 +143,18 @@ func isFloat(tokens []Token) bool {
 }
 
 func isSequence(tokens []Token) bool {
-	return true
+	bracketCount := 0
+	for _, token := range tokens {
+		switch token.name {
+		case tokenParenL, tokenSqBraL, tokenCurlyL:
+			bracketCount++
+		case tokenParenR, tokenSqBraR, tokenCurlyR:
+			bracketCount--
+		case tokenSequence:
+			if bracketCount == 0 {
+				return true
+			}
+		}
+	}
+	return false
 }

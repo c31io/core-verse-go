@@ -1,5 +1,7 @@
 package cvg
 
+import "sync"
+
 type ExprType int
 
 const (
@@ -42,12 +44,32 @@ func (expr *Expression) Rewriter() {
 	switch expr.exprType {
 
 	case exprValueInt:
-		expr.inter.print(expr.valueInt.Sprint())
+		if expr.outerExpr == nil {
+			expr.inter.print(expr.valueInt.Sprint())
+		}
 
 	case exprValueFloat:
-		expr.inter.print(expr.valueFloat.Sprint())
+		if expr.outerExpr == nil {
+			expr.inter.print(expr.valueFloat.Sprint())
+		}
 
 	case exprSequence:
+		// after all evaluated
+		var wg sync.WaitGroup
+		wg.Add(len(expr.innerExprs))
+		for index := range expr.innerExprs {
+			go func(index int) {
+				defer wg.Done()
+				expr.innerExprs[index].Rewriter()
+			}(index)
+		}
+		wg.Wait()
+		// become the last inner expression
+		last := expr.innerExprs[len(expr.innerExprs)-1]
+		expr.exprType = last.exprType
+		expr.valueInt = last.valueInt
+		expr.valueFloat = last.valueFloat
+		expr.Rewriter()
 
 	case exprScope:
 
