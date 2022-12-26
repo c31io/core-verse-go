@@ -35,9 +35,12 @@ func (inter *Interpreter) parser() {
 // Parse tokens into an expression.
 func (expr *Expression) buildExpression(inter *Interpreter, tokens []Token) error {
 	fmt.Printf("%v\n", tokens)
+	if !goodBrackets(tokens) {
+		return ErrorBracketsNotMatch{}
+	}
 	expr.inter = inter
-	// Is it a value?
-	if isInteger(tokens) {
+	switch {
+	case isInteger(tokens):
 		vi, err := strconv.ParseInt(tokens[0].lexeme, 10, 0)
 		if err != nil {
 			return ErrorParsingNumber{}
@@ -45,8 +48,7 @@ func (expr *Expression) buildExpression(inter *Interpreter, tokens []Token) erro
 		expr.exprType = exprValueInt
 		expr.valueInt = &Value[int]{}
 		expr.valueInt.NewValue([]int{int(vi)}, valueInteger)
-	}
-	if isFloat(tokens) {
+	case isFloat(tokens):
 		vf, err := strconv.ParseFloat(
 			tokens[0].lexeme+
 				tokens[1].lexeme+
@@ -58,16 +60,52 @@ func (expr *Expression) buildExpression(inter *Interpreter, tokens []Token) erro
 		expr.exprType = exprValueFloat
 		expr.valueFloat = &Value[float64]{}
 		expr.valueFloat.NewValue([]float64{vf}, valueFloat)
+	case isSequence(tokens):
+		// Is it a scope?
+		// Is it a fail?
+		// Is it a for-do?
+		// Is it a if-else?
+		// Is it choices?
+		// Is it an application?
+		// Is it a unify?
+	default:
+		return ErrorUnknownExpression{}
 	}
-	// Is it a sequence?
-	// Is it a scope?
-	// Is it a fail?
-	// Is it a for-do?
-	// Is it a if-else?
-	// Is it choices?
-	// Is it an application?
-	// Is it a unify?
 	return nil
+}
+
+func goodBrackets(tokens []Token) bool {
+	bracketStack := make([]tokenName, len(tokens))
+	height := 0
+	for _, token := range tokens {
+		switch token.name {
+		case tokenParenL:
+			bracketStack[height] = tokenParenL
+			height++
+		case tokenParenR:
+			if height < 1 || bracketStack[height-1] != tokenParenL {
+				return false
+			}
+			height--
+		case tokenSqBraL:
+			bracketStack[height] = tokenSqBraL
+			height++
+		case tokenSqBraR:
+			if height < 1 || bracketStack[height-1] != tokenSqBraL {
+				return false
+			}
+			height--
+		case tokenCurlyL:
+			bracketStack[height] = tokenCurlyL
+			height++
+		case tokenCurlyR:
+			if height < 1 || bracketStack[height-1] != tokenCurlyL {
+				return false
+			}
+			height--
+		}
+	}
+	return height == 0
 }
 
 func isInteger(tokens []Token) bool {

@@ -37,7 +37,7 @@ func (inter *Interpreter) Init(chanBufSize int) {
 // run with an empty string "" as prompt to handle file input for batch mode.
 func (inter *Interpreter) Run(prompt *string, input *os.File) error {
 	if !inter.initialized {
-		return ErrorInterUninitialized{}
+		return ErrorUninitialized{}
 	}
 	inter.prompt = prompt
 	scanner := bufio.NewScanner(os.Stdin)
