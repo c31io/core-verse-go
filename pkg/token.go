@@ -180,3 +180,16 @@ func getTokenName(s *string) tokenName {
 		}
 	}
 }
+
+func (tn tokenName) precedence() int {
+	switch tn {
+	case tokenMultiply, tokenDivide:
+		return 1
+	case tokenPlus, tokenMinus:
+		return 2
+	case tokenLe, tokenGr, tokenLeq, tokenGeq:
+		return 3
+	default:
+		return 0
+	}
+}

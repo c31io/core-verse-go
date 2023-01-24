@@ -91,14 +91,21 @@ func (expr *Expression) buildExpression(
 		// for-do?
 		// if-else?
 		// choices?
-		// application?
 		// unify?
+		// application?
+	case isApplication(tokens):
+		active := activeOperator(tokens)
+		if active <= 0 || active >= len(tokens)-1 {
+			return ErrorUnknownExpression{}
+		}
+		// TODO recursive
 	default:
 		return ErrorUnknownExpression{}
 	}
 	return nil
 }
 
+// Check if brackets match.
 func goodBrackets(tokens []Token) bool {
 	bracketStack := make([]tokenName, len(tokens))
 	height := 0
@@ -157,4 +164,27 @@ func isSequence(tokens []Token) bool {
 		}
 	}
 	return false
+}
+
+func isApplication(tokens []Token) bool {
+	bracketCount := 0
+	for _, token := range tokens {
+		switch token.name {
+		case tokenParenL, tokenSqBraL, tokenCurlyL:
+			bracketCount++
+		case tokenParenR, tokenSqBraR, tokenCurlyR:
+			bracketCount--
+		case tokenPlus, tokenMinus, tokenMultiply, tokenDivide,
+			tokenLe, tokenGr, tokenLeq, tokenGeq:
+			if bracketCount == 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// Find the leftmost one of the highest precedence operators.
+func activeOperator(tokens []Token) int {
+	return 0 // TODO activeOperator
 }
